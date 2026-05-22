@@ -1,6 +1,6 @@
 Application Configuration
 
-Version: 1.0
+Version: 1.1 - Security Update
 
 Environment:
 Development
@@ -15,4 +15,4 @@ Branch:
 feature/week-02-git-workflow
 
 Review Status:
-Pending review
+Approved and merged
