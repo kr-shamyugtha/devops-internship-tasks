@@ -1,0 +1,9 @@
+Application Configuration
+
+Version: 1.0
+
+Environment:
+Development
+
+Status:
+Initial setup completed.
