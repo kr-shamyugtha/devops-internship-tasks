@@ -7,3 +7,12 @@ Development
 
 Status:
 Initial setup completed.
+
+Feature Update:
+Git workflow implementation added.
+
+Branch:
+feature/week-02-git-workflow
+
+Review Status:
+Pending review
