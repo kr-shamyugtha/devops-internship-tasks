@@ -6,7 +6,11 @@ async function loadMenu(category) {
 
         const menuContainer = document.getElementById("menu-container");
 
-        let html = `<h2>${category.toUpperCase()}</h2>`;
+        let title =
+            category.charAt(0).toUpperCase() +
+            category.slice(1);
+
+        let html = `<h2>${title}</h2>`;
 
         data.forEach(item => {
             html += `
@@ -21,5 +25,8 @@ async function loadMenu(category) {
 
     } catch (error) {
         console.error(error);
+
+        document.getElementById("menu-container").innerHTML =
+            "<h2>Error loading menu.</h2>";
     }
 }
