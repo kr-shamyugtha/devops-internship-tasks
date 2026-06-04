@@ -105,6 +105,8 @@ app.get("/api/sides", (req, res) => res.json(menu.sides));
 app.get("/api/desserts", (req, res) => res.json(menu.desserts));
 app.get("/api/drinks", (req, res) => res.json(menu.drinks));
 
-app.listen(3000, () => {
-  console.log("Cafe Menu Server running on port 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Cafe Menu Server running on port ${PORT}`);
 });
