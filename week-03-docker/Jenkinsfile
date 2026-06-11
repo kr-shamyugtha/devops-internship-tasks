@@ -18,6 +18,7 @@ pipeline {
         stage('Unit Tests') {
     steps {
         dir('week-03-docker') {
+            sh 'npm ci'
             sh 'npm test'
         }
     }
