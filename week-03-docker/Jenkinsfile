@@ -18,7 +18,7 @@ pipeline {
         stage('Unit Tests') {
     steps {
         dir('week-03-docker') {
-            sh 'npm ci'
+            sh 'exit 1'
             sh 'npm test'
         }
     }
