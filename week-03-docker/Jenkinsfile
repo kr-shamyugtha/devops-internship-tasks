@@ -1,75 +1,97 @@
 pipeline {
-    agent any
+agent any
 
-    environment {
-        IMAGE_NAME = "shamyugtha/week03-node-app"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+```
+environment {
+    IMAGE_NAME = "shamyugtha/week03-node-app"
+    IMAGE_TAG = "${BUILD_NUMBER}"
+}
+
+stages {
+
+    stage('Environment Validation') {
+
+        parallel {
+
+            stage('Git Check') {
+                steps {
+                    sh 'git --version'
+                    sh 'sleep 5'
+                }
+            }
+
+            stage('Docker Check') {
+                steps {
+                    sh 'docker --version'
+                    sh 'sleep 10'
+                }
+            }
+
+            stage('Node Check') {
+                steps {
+                    sh 'node --version'
+                    sh 'sleep 15'
+                }
+            }
+
+        }
     }
 
-    stages {
-
-        stage('Environment Validation') {
-            steps {
-                sh 'git --version'
-                sh 'docker --version'
+    stage('Unit Tests') {
+        steps {
+            dir('week-03-docker') {
+                sh 'npm ci'
+                sh 'npm test'
             }
         }
+    }
 
-        stage('Unit Tests') {
-    steps {
-        dir('week-03-docker') {
-           sh 'exit 1'
-            sh 'npm test'
+    stage('Verify Project Files') {
+        steps {
+            dir('week-03-docker') {
+                sh 'ls -la'
+            }
+        }
+    }
+
+    stage('Build Docker Image') {
+        steps {
+            dir('week-03-docker') {
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+            }
+        }
+    }
+
+    stage('Verify Docker Image') {
+        steps {
+            sh 'docker images'
+        }
+    }
+
+    stage('Docker Hub Login') {
+        steps {
+            withCredentials([
+                usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )
+            ]) {
+                sh '''
+                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                '''
+            }
+        }
+    }
+
+    stage('Push Docker Image') {
+        steps {
+            sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
         }
     }
 }
 
-        stage('Verify Project Files') {
-            steps {
-                dir('week-03-docker') {
-                    sh 'ls -la'
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                dir('week-03-docker') {
-                    sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
-                }
-            }
-        }
-
-        stage('Verify Docker Image') {
-            steps {
-                sh 'docker images'
-            }
-        }
-
-        stage('Docker Hub Login') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )
-                ]) {
-                    sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    '''
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
-            }
-        }
-    }
-
-    post {
+post {
 
     success {
         echo 'SUCCESS BLOCK'
@@ -82,4 +104,7 @@ pipeline {
     always {
         echo 'ALWAYS BLOCK'
     }
+}
+```
+
 }
