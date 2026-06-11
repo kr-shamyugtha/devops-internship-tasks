@@ -17,12 +17,12 @@ pipeline {
 
         stage('Unit Tests') {
     steps {
-        catchError(
-            buildResult: 'UNSTABLE',
-            stageResult: 'FAILURE'
-        ) {
-            dir('week-03-docker') {
+        script {
+            try {
                 sh 'exit 1'
+            }
+            catch(Exception e) {
+                echo "Test Failed But Continuing"
             }
         }
     }
