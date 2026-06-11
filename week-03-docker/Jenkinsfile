@@ -28,8 +28,7 @@ stages {
 
             stage('Node Check') {
                 steps {
-                    sh 'node --version'
-                    sh 'sleep 15'
+                    sh 'exit 1'
                 }
             }
 
