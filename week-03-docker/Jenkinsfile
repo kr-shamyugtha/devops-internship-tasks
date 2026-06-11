@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "shamyugtha/week03-node-app"
-        IMAGE_TAG = "v1"
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -18,7 +18,6 @@ pipeline {
         stage('Verify Project Files') {
             steps {
                 dir('week-03-docker') {
-                    sh 'pwd'
                     sh 'ls -la'
                 }
             }
@@ -36,6 +35,35 @@ pipeline {
             steps {
                 sh 'docker images'
             }
+        }
+
+        stage('Docker Hub Login') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout || true'
+            echo 'Pipeline completed'
         }
     }
 }
