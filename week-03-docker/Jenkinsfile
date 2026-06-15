@@ -8,21 +8,6 @@ pipeline {
 
     stages {
 
-        stage('Git Tool Verification') {
-            steps {
-                sh '''
-                    echo "Checking Git location..."
-                    which git
-
-                    echo "Checking Git version..."
-                    git --version
-
-                    echo "Current PATH:"
-                    echo $PATH
-                '''
-            }
-        }
-
         stage('Environment Validation') {
             steps {
                 sh 'git --version'
@@ -50,7 +35,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('week-03-docker') {
-                    sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
@@ -71,7 +56,7 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                     '''
                 }
             }
@@ -79,15 +64,23 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
     }
 
     post {
+        success {
+            echo 'Pipeline completed successfully'
+        }
+
+        failure {
+            echo 'Pipeline failed'
+        }
+
         always {
             sh 'docker logout || true'
-            echo 'Pipeline completed'
+            echo 'Pipeline execution finished'
         }
     }
 }
