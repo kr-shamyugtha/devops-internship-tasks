@@ -4,14 +4,14 @@ pipeline {
     environment {
         AWS_REGION = "eu-north-1"
         ACCOUNT_ID = "084000526798"
-        ECR_REPO = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/myapp"
+        ECR_REPO = "084000526798.dkr.ecr.eu-north-1.amazonaws.com/week5-app"
         IMAGE_TAG = "${BUILD_NUMBER}"
         APP_SERVER = "ubuntu@13.51.197.156"
     }
 
     stages {
 
-        
+
 
         stage('Validate Environment') {
             steps {
