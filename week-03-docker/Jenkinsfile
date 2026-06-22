@@ -3,29 +3,26 @@ pipeline {
 
     environment {
         AWS_REGION = "eu-north-1"
-        ACCOUNT_ID = "084000526798"
-        ECR_REPO = "084000526798.dkr.ecr.eu-north-1.amazonaws.com/week5-app"
+        ECR_REGISTRY = "084000526798.dkr.ecr.eu-north-1.amazonaws.com"
+        ECR_REPO = "jenkins-brew-haven"
         IMAGE_TAG = "${BUILD_NUMBER}"
-        APP_SERVER = "ubuntu@13.51.197.156"
+        APP_SERVER = "ubuntu@13.51.195.209"
     }
 
     stages {
-
-
 
         stage('Validate Environment') {
             steps {
                 sh 'git --version'
                 sh 'docker --version'
                 sh 'aws --version'
-                sh 'node -v || true'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 dir('week-03-docker') {
-                    sh 'npm ci || true'
+                    sh 'npm ci'
                 }
             }
         }
@@ -33,15 +30,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 dir('week-03-docker') {
-                    sh 'npm test || true'
-                }
-            }
-        }
-
-        stage('Verify Project Files') {
-            steps {
-                dir('week-03-docker') {
-                    sh 'ls -la'
+                    sh 'npm test'
                 }
             }
         }
@@ -54,61 +43,60 @@ pipeline {
             }
         }
 
-        stage('Verify Docker Image') {
-            steps {
-                sh 'docker images'
-            }
-        }
-
         stage('Login to ECR') {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin $ECR_REPO
+                docker login --username AWS --password-stdin $ECR_REGISTRY
                 '''
             }
         }
 
-        stage('Tag Docker Image') {
+        stage('Push Image to ECR') {
             steps {
                 sh """
-                docker tag myapp:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
-                """
-            }
-        }
-
-        stage('Push to ECR') {
-            steps {
-                sh """
-                docker push ${ECR_REPO}:${IMAGE_TAG}
+                docker tag myapp:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+                docker push ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
                 """
             }
         }
 
         stage('Deploy to App EC2') {
             steps {
-                sh """
-                ssh -o StrictHostKeyChecking=no $APP_SERVER '
-                docker pull ${ECR_REPO}:${IMAGE_TAG} &&
-                docker stop myapp || true &&
-                docker rm myapp || true &&
-                docker run -d -p 80:3000 --name myapp ${ECR_REPO}:${IMAGE_TAG}
-                '
-                """
+                sshagent(credentials: ['app-server-key']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${APP_SERVER} '
+
+                    aws ecr get-login-password --region ${AWS_REGION} | \
+                    docker login --username AWS --password-stdin ${ECR_REGISTRY}
+
+                    docker pull ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+
+                    docker stop myapp || true
+                    docker rm myapp || true
+
+                    docker run -d \
+                        --name myapp \
+                        -p 80:3000 \
+                        ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+                    '
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo '✅ Application deployed successfully!'
+            echo 'Application deployed successfully'
         }
+
         failure {
-            echo '❌ Pipeline failed. Check logs.'
+            echo 'Pipeline failed'
         }
+
         always {
-            sh 'docker system prune -f || true'
-            echo '🧹 Cleanup completed'
+            sh 'docker image prune -f || true'
         }
     }
 }
