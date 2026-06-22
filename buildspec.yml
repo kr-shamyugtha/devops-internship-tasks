@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - cd week-03-docker
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 084000526798.dkr.ecr.eu-north-1.amazonaws.com
+
+  build:
+    commands:
+      - echo Installing dependencies...
+      - npm ci
+      - echo Running tests...
+      - npm test
+      - echo Building Docker image...
+      - docker build -t jenkins-brew-haven:latest .
+      - docker tag jenkins-brew-haven:latest 084000526798.dkr.ecr.eu-north-1.amazonaws.com/jenkins-brew-haven:latest
+
+  post_build:
+    commands:
+      - echo Pushing image to ECR...
+      - docker push 084000526798.dkr.ecr.eu-north-1.amazonaws.com/jenkins-brew-haven:latest
