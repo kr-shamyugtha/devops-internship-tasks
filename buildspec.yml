@@ -25,4 +25,5 @@ phases:
 
 artifacts:
   files:
-    - week-03-docker/imagedefinitions.json
+    - '**/*'
+  base-directory: week-03-docker
