@@ -21,3 +21,8 @@ phases:
     commands:
       - echo Pushing image to ECR...
       - docker push 084000526798.dkr.ecr.eu-north-1.amazonaws.com/jenkins-brew-haven:latest
+      - printf '[{"name":"jenkins-brew-haven","imageUri":"084000526798.dkr.ecr.eu-north-1.amazonaws.com/jenkins-brew-haven:latest"}]' > imagedefinitions.json
+
+artifacts:
+  files:
+    - week-03-docker/imagedefinitions.json
